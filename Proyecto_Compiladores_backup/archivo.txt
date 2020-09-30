@@ -1,0 +1,5 @@
+int main(){
+   if(ab){
+     print(ab2);
+  }endif;
+endmain}

@@ -1,0 +1,5 @@
+int main(){
+    @
+    car(int) ~ 45
+    car(int) f 45;
+endmain}

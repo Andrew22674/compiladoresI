@@ -1,0 +1,12 @@
+digraph G {
+"8. Start = null"->"7. MAIN = null"
+"7. MAIN = null"->"6. STATEMENT LIST = null"
+"6. STATEMENT LIST = null"->"5. STATEMENT IF = null"
+"5. STATEMENT IF = null"->"4. IF STATEMENT = null"
+"4. IF STATEMENT = null"->"0. BOOLEAN EXPRETION = null"
+"4. IF STATEMENT = null"->"3. STATEMENT LIST = null"
+"3. STATEMENT LIST = null"->"2. STATEMENT PRINT = null"
+"2. STATEMENT PRINT = null"->"1. PRINT = null"
+
+
+}

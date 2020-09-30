@@ -1,0 +1,897 @@
+package code;
+import java_cup.runtime.*;
+import java.io.*;
+import java.util.ArrayList;
+
+parser code {: 
+
+public int count = 0;
+public static Node root;
+ArrayList<String> errors = new ArrayList();
+
+ private Symbol s;
+
+    public Node getRoot(){
+        return this.root;
+    }
+    
+    
+    /*public void syntax_error(Symbol s){
+        this.s = s;
+        System.out.println("Error en linea " + (s.left+1) + "\n" + "columna " + s.right + "\nidentificador: " + s.value + " no reconocido.");
+    }
+
+    public void unrecovered_syntax_Error(Symbol s) throws java.lang.Exception{
+        System.out.println("Error en linea " + (s.left+1) + "\n" + "columna " + s.right + "\nidentificador: " + s.value + " no reconocido 2.");
+    }
+
+    
+
+    public Symbol getS(){
+        return this.s;
+}*/
+
+
+    /*public static Scanner s2;
+    int myerrors = 0;
+
+    @Override
+    public void report_error(String message, Object info) {
+    if (info instanceof String){
+	myerrors++; 
+      System.err.println("  "+ myerrors + "==> " + info + " "+ message + 
+					"\n       Parsing resumed from 2nd token before" + s2.current_lexeme()+"\n");
+    }
+    else {
+    	StringBuffer m = new StringBuffer("Error ");
+    	if (info instanceof java_cup.runtime.Symbol) 
+     	   m.append( "("+info.toString()+")" );     
+    	m.append(" : "+message);   
+    	System.err.println(m);
+    }
+  }*/
+     @Override
+    public void syntax_error(Symbol s){
+        String lexVal = s.value != null ? s.value.toString() : getToken(s.sym);
+        String err = "";
+        if(lexVal.equals("EOF")){
+            err = "Error found: expected }";
+        } else {
+            err = "Error found: " +  " line: " + (s.left+1) + " column: " + s.right + ", No se esperaba: " + lexVal;
+        }
+        System.err.println(err);
+        errors.add(err);
+    }
+
+    @Override
+    public void unrecovered_syntax_error(Symbol s) throws java.lang.Exception {
+        String lexVal = s.value != null ? s.value.toString() : getToken(s.sym);
+        String err = "";
+        if(lexVal.equals("EOF")){
+            err = "";
+        }else{
+            err = "Unrecoverd error! Error found: " + " line: " + (s.left+1) + " column: " + s.right + ", No se esperaba: " + lexVal;
+        }
+        System.err.println(err);
+        errors.add(err);
+    }
+
+    public String getToken(int id){
+        String name = "";
+        name = terminals.myterminals[id];
+        //System.out.println("name: " + name);
+        switch(id){
+ 
+            default:
+                return name;
+    }
+}
+
+
+:};
+
+terminal Integer DIGIT, NUM;
+terminal LKEY,RKEY,LBRA,CHAR,RBRA,LPAR,RPAR,SWITCH,IF,ENDIF,OR,WHILE,FOR,FUNC,CASE,MAIN, SUMOP,RELOP,
+        MULTOP,LOGOP,DOT,COMMA,COLON,SEMICOLON,VARTYPE,BOOL,LETTER,QUOTATION, END,
+        WORD,PIPE,BREAK,DEFAULT,VAR,INT,MOD,ELSE,ENDMAIN, ASSIGN, NONE, ASSIGNFOR,RETURN,STEP,TRUE,FALSE,NOT,PRINT,EQ,RUN;
+terminal ID;
+
+
+
+non terminal program,mmain,switch,while, relop, exp, vars,tokens, tokens_boolean, 
+        call_function, function_declaration, function_list, if_stmt, default_stmt, else_stmt, for_stmt, statement_list, statement, boolean_expr,or_stmt, while_stmt, print, 
+        call_params, params, return,boolean_expr_cont, assignment,vartypes, switch_stmt, case_stmt, case2, endif, assign, assignvalues, ass2, assign_expr,term,factor;
+
+
+start with program;
+
+program ::= mmain:m1 
+    {:
+        Node mm = new Node();
+        mm.setTag("Start");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) m1);
+        parser.root=(Node) mm;
+        RESULT = mm;
+    :} 
+| function_list:fl1 mmain:m1 function_list:fl2
+    {:
+        Node mm = new Node();
+        mm.setTag("Start");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) fl1);
+        mm.addLeafs((Node) m1);
+        mm.addLeafs((Node) fl2);
+        parser.root=(Node) mm;
+        RESULT = mm;
+    :}
+| function_list:fl1 mmain:m1 
+    {:
+        Node mm = new Node();
+        mm.setTag("Start");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) fl1);
+        mm.addLeafs((Node) m1);
+        parser.root=(Node) mm;
+        RESULT = mm;
+    :}
+    | mmain:m1 function_list:fl1
+    {:
+        Node mm = new Node();
+        mm.setTag("Start");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) m1);
+        mm.addLeafs((Node) fl1);
+        parser.root=(Node) mm;
+        RESULT = mm;
+    :};
+
+mmain ::= INT MAIN LPAR RPAR LKEY statement_list:stl ENDMAIN RKEY 
+    {:
+        Node mm = new Node();
+        mm.setTag("MAIN");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node)stl);
+        
+        RESULT = mm;
+        
+    :}
+| INT MAIN LPAR RPAR LKEY /*sin cuerpo */ ENDMAIN RKEY
+    {:
+        Node mm = new Node();
+        mm.setTag("MAIN");
+        mm.setID(parser.count);
+        parser.count++;
+        
+        RESULT = mm;
+    :};
+
+statement_list ::= statement_list:stl statement:st
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT LIST");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) stl);
+        mm.addLeafs((Node) st);
+        
+        RESULT=mm;
+    :} 
+    | statement:st 
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT LIST");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) st);
+
+        RESULT=mm;
+    :};
+
+statement ::= for_stmt:fst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) fst);
+
+        RESULT=mm;
+    :}
+| if_stmt:ifst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT IF");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) ifst);
+
+        RESULT=mm;
+    :} /*{:System.out.println("single if");:}*/ 
+| while_stmt: whst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT WHILE");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) whst);
+
+        RESULT=mm;
+    :}
+| vars:vst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT VARS");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vst);
+
+        RESULT = mm;
+    :}
+| assign: ast
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT ASSIGN");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) ast);
+        
+        RESULT = mm;
+    :}
+| assignvalues:avst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT ASSIGN VALUES");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) avst);
+        
+        RESULT = mm;        
+    :}
+| print:pst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT PRINT");
+        mm.setID(parser.count);
+        
+        parser.count++;
+        mm.addLeafs((Node) pst);
+        
+        RESULT = mm;
+    :}
+| function_declaration:fdst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT FUNCTION DECLARATION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) fdst);
+        
+        RESULT = mm;
+    :}
+| call_function:cfst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT CALL FUNCTION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) cfst);
+        
+        RESULT = mm;
+    :} 
+| switch_stmt:swst
+    {:
+        Node mm = new Node();
+        mm.setTag("STATEMENT SWITCH");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) swst);
+        
+        RESULT = mm;
+    :}
+| error;
+
+if_stmt ::= IF LPAR boolean_expr:bxp RPAR LKEY  RKEY ENDIF SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        
+        RESULT = mm;
+    :}
+| IF LPAR boolean_expr:bxp RPAR LKEY  RKEY ENDIF error
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        
+        RESULT = mm;
+    :}
+| IF LPAR error {: parser.report_error("expression","WRONG"); :} RPAR LKEY  RKEY or_stmt:orst
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) orst);
+        
+        RESULT = mm;
+    :}
+|  IF LPAR boolean_expr:bxp RPAR LKEY  RKEY or_stmt:orst
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) orst);
+        
+        RESULT = mm;
+    :}
+|  IF LPAR boolean_expr:bxp RPAR LKEY statement_list:stl RKEY ENDIF SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) stl);
+        
+        RESULT = mm;
+    :}
+|  IF LPAR boolean_expr:bxp RPAR LKEY statement_list:stl RKEY ENDIF error
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) stl);
+        
+        RESULT = mm;
+    :}
+|  IF LPAR boolean_expr:bxp RPAR LKEY statement_list:stl RKEY or_stmt:orst
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) orst);
+        mm.addLeafs((Node) stl);
+
+        RESULT = mm;
+    :};
+
+or_stmt ::= OR LPAR boolean_expr:bxp RPAR LKEY   RKEY ENDIF SEMICOLON 
+    {:
+        Node mm = new Node();
+        mm.setTag("OR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        
+        RESULT = mm;
+    :}
+| OR LPAR boolean_expr:bxp RPAR LKEY statement_list:orst  RKEY ENDIF SEMICOLON 
+    {:
+        Node mm = new Node();
+        mm.setTag("OR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) orst);
+
+        RESULT = mm;
+    :}
+| OR LPAR boolean_expr:bxp RPAR LKEY RKEY or_stmt:orst 
+    {:
+        Node mm = new Node();
+        mm.setTag("OR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) orst);
+
+        RESULT = mm;
+    :}
+| OR LPAR boolean_expr:bxp RPAR LKEY RKEY else_stmt:elst 
+    {:
+        Node mm = new Node();
+        mm.setTag("OR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) elst);
+
+        RESULT = mm;
+    :}
+| OR LPAR boolean_expr:bxp RPAR LKEY statement_list:stl RKEY or_stmt:orst 
+    {:
+        Node mm = new Node();
+        mm.setTag("OR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) stl);
+        mm.addLeafs((Node) orst);
+
+        RESULT = mm;
+    :}
+| OR LPAR boolean_expr:bxp RPAR LKEY statement_list:stl RKEY else_stmt:elst 
+    {:
+        Node mm = new Node();
+        mm.setTag("OR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) stl);
+        mm.addLeafs((Node) elst);
+        
+        RESULT = mm;
+    :};
+
+else_stmt ::= ELSE LKEY RKEY ENDIF SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("ELSE STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        
+        RESULT = mm;
+    :}
+| ELSE LKEY statement_list:stl RKEY ENDIF SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("ELSE STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) stl);
+
+        RESULT = mm;
+    :};
+
+
+
+/*if_stmt ::= IF LPAR boolean_expr:bxp RPAR LKEY statement_list:stl RKEY endif
+    {:
+    :}
+        | IF LPAR boolean_expr:bxp RPAR LKEY  RKEY endif:endif
+    {:
+    :}
+        | IF LPAR boolean_expr:bxp RPAR LKEY statement_list:stl RKEY or_stmt:orst
+    {:
+    :}
+        | IF LPAR boolean_expr:bxp RPAR LKEY RKEY or_stmt:orst
+    {:
+    :};
+
+or_stmt ::= OR LPAR boolean_expr RPAR LKEY  RKEY else_stmt ENDIF SEMICOLON
+        | OR LPAR boolean_expr RPAR LKEY RKEY or_stmt2 ;
+
+or_stmt2 ::= OR LPAR boolean_expr RPAR or_stmt3 ;
+
+or_stmt3 ::= LKEY RKEY endif | LKEY RKEY else_stmt;
+
+endif ::= SEMICOLON;*/
+
+
+        /*| OR LPAR boolean_expr RPAR LKEY statement_list RKEY ENDIF SEMICOLON
+        | OR LPAR boolean_expr RPAR LKEY   RKEY ENDIF SEMICOLON
+        | OR LPAR boolean_expr RPAR LKEY   RKEY
+        | OR LPAR boolean_expr RPAR LKEY statement_list RKEY*/
+/*
+or_stmt2 ::= or_stmt2 OR LPAR boolean_expr RPAR LKEY statement_list RKEY else_stmt
+        | OR LPAR boolean_expr RPAR LKEY statement_list RKEY ENDIF else_stmt
+        | OR LPAR boolean_expr RPAR LKEY statement_list RKEY else_stmt
+        | OR LPAR boolean_expr RPAR LKEY   RKEY else_stmt;*/
+
+/*else_stmt ::= or_stmt 
+        | ELSE LKEY statement_list RKEY
+        | ELSE LKEY  RKEY;*/
+
+while_stmt ::= RUN LKEY statement_list:stl RKEY WHILE LPAR boolean_expr:bxp RPAR SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("WHILE STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) stl);
+        mm.addLeafs((Node) bxp);
+        
+        RESULT = mm;
+    :}
+        | RUN LKEY /*vacio*/ RKEY WHILE LPAR boolean_expr:bxp RPAR SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("WHILE STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        
+        RESULT = mm;
+    :};
+
+for_stmt ::= FOR LPAR INT ID SEMICOLON NUM STEP NUM RPAR LKEY statement_list:stl RKEY
+    {:
+        Node mm = new Node();
+        mm.setTag("FOR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) stl);
+        
+        RESULT = mm;
+    :}
+|FOR LPAR INT ID SEMICOLON NUM STEP NUM RPAR LKEY /*vacio*/ RKEY
+    {:
+        Node mm = new Node();
+        mm.setTag("FOR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+
+        RESULT = mm;
+    :}
+| FOR LPAR error RPAR
+    {:
+        Node mm = new Node();
+        mm.setTag("FOR STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        
+        RESULT = mm;
+    :};
+
+
+/*instructions ::= vars
+            | print;*/
+
+
+call_function ::= ID LPAR call_params:cpar RPAR SEMICOLON 
+    {:
+        Node mm = new Node();
+        mm.setTag("CALL FUNCTION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) cpar);
+        
+        RESULT = mm;
+    :}
+ | error SEMICOLON ;
+
+call_params ::= call_params:cpar COMMA ID 
+    {:
+        Node mm = new Node();
+        mm.setTag("CALL PARAMS");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) cpar);
+
+        RESULT = mm;
+    :} | ID;
+
+
+function_declaration ::= FUNC vartypes:vt ID LPAR params:p RPAR LKEY statement_list:stl return:r RKEY
+    {:
+        Node mm = new Node();
+        mm.setTag("FUNCTION DECLARATION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
+        mm.addLeafs((Node) p);
+        mm.addLeafs((Node) stl);
+        mm.addLeafs((Node) r);
+        
+        RESULT=mm;
+    :}
+
+                    |
+                    FUNC vartypes:vt ID LPAR params:p RPAR
+                    LKEY /* sin cuerpo */ return:r RKEY
+    {:
+        Node mm = new Node();
+        mm.setTag("FUNCTION DECLARATION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
+        mm.addLeafs((Node) p);
+        mm.addLeafs((Node) r);
+        
+        RESULT=mm;
+    :}
+
+| FUNC vartypes:vt ID LPAR params:p RPAR
+                    LKEY /* sin cuerpo */ error RKEY
+    {:
+        Node mm = new Node();
+        mm.setTag("FUNCTION DECLARATION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
+        mm.addLeafs((Node) p);
+        
+        RESULT=mm;
+    :};
+
+function_list ::= function_list:fcl function_declaration:fcd
+    {:
+        Node mm = new Node();
+        mm.setTag("FUNCTION LIST");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) fcl);
+        mm.addLeafs((Node) fcd);
+        
+        RESULT=mm;
+    :} | function_declaration:fcd
+    {:
+        Node mm = new Node();
+        mm.setTag("FUNCTION LIST");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) fcd);
+        
+        RESULT=mm;
+    :};
+
+return ::= RETURN ID SEMICOLON;
+
+vars ::= ID LPAR vartypes:vt RPAR ASSIGN assignment:at SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("VARS");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
+        mm.addLeafs((Node) at);
+        
+        RESULT=mm;
+    :} // my_sum(int) = a;
+| ID vartypes:vt ASSIGN assign_expr:axp SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("VARS");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
+        mm.addLeafs((Node) axp);
+        
+        RESULT=mm;
+    :};
+
+//assign ::= ID ASSIGN assignment SEMICOLON;
+
+//a ~| (10+(a*b)/23)
+assignvalues ::= ID ASSIGN assign_expr:axp SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("ASSIGN VALUES");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) axp);
+        
+        RESULT=mm;
+    :};
+
+assign_expr ::= term:t
+    {:
+        Node mm = new Node();
+        mm.setTag("ASSIGN EXPRESION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) t);
+        
+        RESULT=mm;
+    :} | assign_expr:axp SUMOP term:t
+    {:
+        Node mm = new Node();
+        mm.setTag("ASSIGN EXPRESION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) axp);
+        mm.addLeafs((Node) t);
+        
+        RESULT=mm;
+    :};
+
+term ::= factor:f 
+    {:
+        Node mm = new Node();
+        mm.setTag("TERM");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) f);
+        
+        RESULT=mm;
+    :}| term:t MULTOP factor:f
+    {:
+        Node mm = new Node();
+        mm.setTag("TERM");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) f);
+        mm.addLeafs((Node) t);
+        
+        RESULT=mm;
+    :};
+
+factor ::= assignment:assig
+    {:
+        Node mm = new Node();
+        mm.setTag("FACTOR");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) assig);
+        
+        RESULT=mm;
+    :} | LPAR assign_expr:axp RPAR
+    {:
+        Node mm = new Node();
+        mm.setTag("FACTOR");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) axp);
+        
+        RESULT=mm;
+    :};
+
+//ass2 ::= ass2 SUMOP assignment | ass2 MULTOP assignment | LPAR ass2 RPAR | assignment;
+
+//no se pueden asignar id's que sean solo una letra, los numeros tienen que tener mas que un digito
+assignment ::= ID | NUM | DIGIT | TRUE | FALSE | QUOTATION LETTER QUOTATION;
+
+switch_stmt::= SWITCH LPAR ID RPAR LKEY case_stmt:cst RKEY
+    {:
+        Node mm = new Node();
+        mm.setTag("SWITCH STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) cst);
+        
+        RESULT=mm;
+    :}
+| SWITCH error RKEY;
+
+case_stmt ::= CASE assignment COLON  END SEMICOLON case_stmt
+            | CASE assignment COLON  END SEMICOLON default_stmt
+            | CASE assignment COLON  END SEMICOLON
+            | CASE assignment COLON statement_list END SEMICOLON case_stmt
+            | CASE assignment COLON statement_list END SEMICOLON default_stmt
+            | CASE assignment COLON statement_list END SEMICOLON;
+
+default_stmt ::= DEFAULT COLON END SEMICOLON | DEFAULT COLON statement_list:stl END SEMICOLON 
+    {:
+        Node mm = new Node();
+        mm.setTag("DEFAULT STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) stl);
+        
+        RESULT=mm;
+    :}| DEFAULT error;
+
+
+vartypes ::= INT | CHAR | NONE;
+
+
+
+boolean_expr ::= tokens_boolean:tb boolean_expr_cont:bexpc
+    {:
+        Node mm = new Node();
+        mm.setTag("BOOLEAN EXPRETION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) tb);
+        mm.addLeafs((Node) bexpc);
+        
+        RESULT=mm;
+    :} 
+        | LPAR boolean_expr:bxp RPAR boolean_expr_cont:bexpc
+    {:
+        Node mm = new Node();
+        mm.setTag("BOOLEAN EXPRETION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        mm.addLeafs((Node) bexpc);
+        
+        RESULT=mm;
+    :}
+        | tokens_boolean:tb
+    {:
+        Node mm = new Node();
+        mm.setTag("BOOLEAN EXPRETION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) tb);
+        
+        RESULT=mm;
+    :}
+        | LPAR boolean_expr:bxp RPAR
+    {:
+      Node mm = new Node();
+        mm.setTag("BOOLEAN EXPRETION");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        
+        RESULT=mm;
+    :}
+        | LPAR error RPAR;
+
+boolean_expr_cont ::= LOGOP boolean_expr:bxp
+    {:
+      Node mm = new Node();
+        mm.setTag("BOOLEAN EXPRETION COUNT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) bxp);
+        
+        RESULT=mm;
+    :};//(and | or) expr
+
+tokens_boolean ::= TRUE:True
+        | FALSE:False
+        | ID
+        | ID EQ ID
+        | ID RELOP ID
+        | ID RELOP NUM
+        | NUM RELOP ID
+        | NOT ID:id
+        | NOT TRUE:nt
+        | NOT FALSE:nf;
+
+//types ::= VARTYPE;
+
+params ::= vartypes:vt ID
+    {:
+      Node mm = new Node();
+        mm.setTag("PARAMS");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
+        
+        RESULT=mm;
+    :}
+        | vartypes:vt ID COMMA params:p 
+        {:      
+            Node mm = new Node();
+            mm.setTag("PARAMS");
+            mm.setID(parser.count);
+            parser.count++;
+            mm.addLeafs((Node) vt);
+            mm.addLeafs((Node) p);
+
+            RESULT=mm;
+        :}| vartypes:vt ID COMMA error
+    {:
+      Node mm = new Node();
+        mm.setTag("PARAMS");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
+        
+        RESULT=mm;
+    :};
+
+print ::= PRINT LPAR assignment:assig RPAR SEMICOLON
+    {:
+        Node mm = new Node();
+        mm.setTag("PRINT");
+        mm.setID(parser.count);
+        parser.count++;
+        Node child = new Node(mm, (String)assig);
+        mm.addLeafs(child);
+        //mm.addLeafs((Node) assig);
+        
+        
+        RESULT=mm;
+    :};

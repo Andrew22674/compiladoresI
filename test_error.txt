@@ -1,0 +1,24 @@
+int main(){
+    /#
+    comment
+    #/
+    c1(int) ~ 10
+    if(c1 < 11){
+        c1 ~ 10@2;
+    }or(c1>20){
+        c1 ~ 10 l5;
+    }else{
+        c1 = 6;
+    }endif;
+endmain}
+
+func int f1(int a){
+    c(int) ~ 0;
+    if(asd){
+
+    }else{
+
+    }endif;
+
+    return c;
+}

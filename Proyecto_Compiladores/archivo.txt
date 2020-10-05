@@ -1,5 +1,11 @@
 int main(){
-   if(ab){
-     print(ab2);
-  }endif;
+ttrue(char) ~ true;
+if(ne==2){
+print("a");
+}else{
+if(asd>3){
+ c(int) ~ 10*2+3;
+}endif;
+}endif;
+
 endmain}

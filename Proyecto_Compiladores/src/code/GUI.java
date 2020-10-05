@@ -191,7 +191,7 @@ public class GUI extends javax.swing.JFrame {
                 System.out.println(parser.errors.size());
 
                 for (int i = 0; i < parser.errors.size(); i++) {
-                    System.out.println("entro for");
+                    //System.out.println("entro for");
                     s2 += (parser.errors.get(i) + "\n");
                 }
                 taResultado.setText(s2);

@@ -1,0 +1,43 @@
+int main(){
+    c1(int) ~ 10;
+    c2(int) ~ 25;
+    
+    if(c1==c2 and c2<30){
+        c2 ~ 14;
+    }endif;
+    ind(int) ~ 5;
+    if(11>=c1){
+        switch(id2){
+            case 23:
+                id2 ~ 45;
+                end;
+            case 45:
+                end;
+            default:
+                end;
+        }
+    }or(c2){
+        for(int a2; 10<1>21){
+            a3 ~ a3+a2;
+            for(int a3; 10<1>21){
+                a4 ~ a4+a3;
+
+            }
+            
+            asd(int) ~ 34;
+        }
+    }or(c1){
+        a2 ~ (10+(a3*b2)/23);
+    }else{
+        run{
+            if(a2 != a3){
+                print(a2);
+            }endif;
+        }while (a3 > a3);
+    }endif;
+endmain}
+
+func int idk(int param){
+    ab ~ param * 2;
+    return aa;
+}

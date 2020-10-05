@@ -91,18 +91,19 @@ ArrayList<String> errors = new ArrayList();
 :};
 
 terminal Integer DIGIT, NUM;
-terminal LKEY,RKEY,LBRA,CHAR,RBRA,LPAR,RPAR,SWITCH,IF,ENDIF,OR,WHILE,FOR,FUNC,CASE,MAIN, SUMOP,RELOP,
-        MULTOP,LOGOP,DOT,COMMA,COLON,SEMICOLON,VARTYPE,BOOL,LETTER,QUOTATION, END,
-        WORD,PIPE,BREAK,DEFAULT,VAR,INT,MOD,ELSE,ENDMAIN, ASSIGN, NONE, ASSIGNFOR,RETURN,STEP,TRUE,FALSE,NOT,PRINT,EQ,RUN;
+terminal LKEY,RKEY,LBRA,CHAR,RBRA,LPAR,RPAR,SWITCH,VARTYPE,PIPE,WORD,IF,ENDIF,OR,WHILE,FOR,FUNC,CASE,MAIN, SUMOP,RELOP,
+        MULTOP,LOGOP,DOT,COMMA,COLON,SEMICOLON,BOOLEAN,LETTER,QUOTATION,QUOTE,END,
+        BREAK,DEFAULT,INT,MOD,ELSE,ENDMAIN, ASSIGN, NONE,RETURN,STEP,TRUE,FALSE,NOT,PRINT,EQ,RUN;
 terminal ID;
 
 
 
-non terminal program,mmain,switch,while, relop, exp, vars,tokens, tokens_boolean, 
+non terminal program,mmain, vars, tokens_boolean, 
         call_function, function_declaration, function_list, if_stmt, default_stmt, else_stmt, for_stmt, statement_list, statement, boolean_expr,or_stmt, while_stmt, print, 
-        call_params, params, return,boolean_expr_cont, assignment,vartypes, switch_stmt, case_stmt, case2, endif, assign, assignvalues, ass2, assign_expr,term,factor;
+        call_params,params, return,boolean_expr_cont,assignment,vartypes,id_or_letter,switch_stmt,assign_num,case_stmt,num_list, assign, assignvalues, assign_expr,term,factor;
 
-
+precedence left SUMOP;
+precedence left MULTOP;
 start with program;
 
 program ::= mmain:m1 
@@ -370,6 +371,27 @@ if_stmt ::= IF LPAR boolean_expr:bxp RPAR LKEY  RKEY ENDIF SEMICOLON
         mm.addLeafs((Node) stl);
 
         RESULT = mm;
+    :} | IF LPAR boolean_expr:be RPAR LKEY RKEY else_stmt:el
+        {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) be);
+        mm.addLeafs((Node) el);
+
+        RESULT = mm;
+    :} | IF LPAR boolean_expr:be RPAR LKEY statement_list:stl RKEY else_stmt:el
+    {:
+        Node mm = new Node();
+        mm.setTag("IF STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) be);
+        mm.addLeafs((Node) stl);
+        mm.addLeafs((Node) el);
+
+        RESULT = mm;
     :};
 
 or_stmt ::= OR LPAR boolean_expr:bxp RPAR LKEY   RKEY ENDIF SEMICOLON 
@@ -521,7 +543,7 @@ while_stmt ::= RUN LKEY statement_list:stl RKEY WHILE LPAR boolean_expr:bxp RPAR
         RESULT = mm;
     :};
 
-for_stmt ::= FOR LPAR INT ID SEMICOLON NUM STEP NUM RPAR LKEY statement_list:stl RKEY
+for_stmt ::= FOR LPAR INT ID SEMICOLON assign_num STEP assign_num RPAR LKEY statement_list:stl RKEY
     {:
         Node mm = new Node();
         mm.setTag("FOR STATEMENT");
@@ -531,7 +553,7 @@ for_stmt ::= FOR LPAR INT ID SEMICOLON NUM STEP NUM RPAR LKEY statement_list:stl
         
         RESULT = mm;
     :}
-|FOR LPAR INT ID SEMICOLON NUM STEP NUM RPAR LKEY /*vacio*/ RKEY
+|FOR LPAR INT ID SEMICOLON assign_num STEP assign_num RPAR LKEY /*vacio*/ RKEY
     {:
         Node mm = new Node();
         mm.setTag("FOR STATEMENT");
@@ -555,7 +577,7 @@ for_stmt ::= FOR LPAR INT ID SEMICOLON NUM STEP NUM RPAR LKEY statement_list:stl
             | print;*/
 
 
-call_function ::= ID LPAR call_params:cpar RPAR SEMICOLON 
+call_function ::= id_or_letter LPAR call_params:cpar RPAR SEMICOLON 
     {:
         Node mm = new Node();
         mm.setTag("CALL FUNCTION");
@@ -579,7 +601,7 @@ call_params ::= call_params:cpar COMMA ID
     :} | ID;
 
 
-function_declaration ::= FUNC vartypes:vt ID LPAR params:p RPAR LKEY statement_list:stl return:r RKEY
+function_declaration ::= FUNC vartypes:vt id_or_letter LPAR params:p RPAR LKEY statement_list:stl return:r RKEY
     {:
         Node mm = new Node();
         mm.setTag("FUNCTION DECLARATION");
@@ -594,7 +616,7 @@ function_declaration ::= FUNC vartypes:vt ID LPAR params:p RPAR LKEY statement_l
     :}
 
                     |
-                    FUNC vartypes:vt ID LPAR params:p RPAR
+                    FUNC vartypes:vt id_or_letter LPAR params:p RPAR
                     LKEY /* sin cuerpo */ return:r RKEY
     {:
         Node mm = new Node();
@@ -608,7 +630,7 @@ function_declaration ::= FUNC vartypes:vt ID LPAR params:p RPAR LKEY statement_l
         RESULT=mm;
     :}
 
-| FUNC vartypes:vt ID LPAR params:p RPAR
+| FUNC vartypes:vt id_or_letter LPAR params:p RPAR
                     LKEY /* sin cuerpo */ error RKEY
     {:
         Node mm = new Node();
@@ -642,20 +664,11 @@ function_list ::= function_list:fcl function_declaration:fcd
         RESULT=mm;
     :};
 
-return ::= RETURN ID SEMICOLON;
+return ::= RETURN id_or_letter SEMICOLON | RETURN assign_num SEMICOLON;
 
-vars ::= ID LPAR vartypes:vt RPAR ASSIGN assignment:at SEMICOLON
-    {:
-        Node mm = new Node();
-        mm.setTag("VARS");
-        mm.setID(parser.count);
-        parser.count++;
-        mm.addLeafs((Node) vt);
-        mm.addLeafs((Node) at);
-        
-        RESULT=mm;
-    :} // my_sum(int) = a;
-| ID vartypes:vt ASSIGN assign_expr:axp SEMICOLON
+id_or_letter ::= ID | LETTER;
+
+vars ::=  id_or_letter LPAR vartypes:vt RPAR ASSIGN assign_expr:axp SEMICOLON
     {:
         Node mm = new Node();
         mm.setTag("VARS");
@@ -670,7 +683,7 @@ vars ::= ID LPAR vartypes:vt RPAR ASSIGN assignment:at SEMICOLON
 //assign ::= ID ASSIGN assignment SEMICOLON;
 
 //a ~| (10+(a*b)/23)
-assignvalues ::= ID ASSIGN assign_expr:axp SEMICOLON
+assignvalues ::= id_or_letter ASSIGN assign_expr:axp SEMICOLON
     {:
         Node mm = new Node();
         mm.setTag("ASSIGN VALUES");
@@ -690,17 +703,27 @@ assign_expr ::= term:t
         mm.addLeafs((Node) t);
         
         RESULT=mm;
-    :} | assign_expr:axp SUMOP term:t
+    :} | assign_expr:axp SUMOP:sum term:t
     {:
         Node mm = new Node();
-        mm.setTag("ASSIGN EXPRESION");
+        Node child= new Node(mm, (String)sum);
+        child.setTag("SUM");
+        mm.setTag("ADD EXPRESION");
         mm.setID(parser.count);
         parser.count++;
-        mm.addLeafs((Node) axp);
-        mm.addLeafs((Node) t);
+        child.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node)child);
+        child.addLeafs((Node) axp);
+        child.addLeafs((Node) t);
         
         RESULT=mm;
-    :};
+    :} | LKEY RKEY | LKEY num_list:nl RKEY 
+        {:  Node mm = new Node();
+            mm.setTag("Num list");
+            mm.setID(parser.count);
+            parser.count++; 
+            RESULT = mm;:} | QUOTE LETTER QUOTE;
 
 term ::= factor:f 
     {:
@@ -711,21 +734,32 @@ term ::= factor:f
         mm.addLeafs((Node) f);
         
         RESULT=mm;
-    :}| term:t MULTOP factor:f
+    :}| term:t MULTOP:m factor:f
     {:
         Node mm = new Node();
-        mm.setTag("TERM");
+        mm.setTag("mult_expr");
         mm.setID(parser.count);
         parser.count++;
-        mm.addLeafs((Node) f);
-        mm.addLeafs((Node) t);
+        Node child = new Node(mm, (String) m);
+        child.setTag("MULT");
+        child.setID(parser.count);
+        parser.count++;
+        /*Node multi = new Node(mm, (String)m);
+        multi.setTag("*");
+        mm.addLeafs(multi);*/
+        mm.addLeafs((Node) child);
+        child.addLeafs((Node) t);
+        child.addLeafs((Node) f);
         
         RESULT=mm;
     :};
 
+num_list ::= assign_num | assign_num COMMA num_list;
+
 factor ::= assignment:assig
     {:
         Node mm = new Node();
+        //mm.setValue((String)assig);
         mm.setTag("FACTOR");
         mm.setID(parser.count);
         parser.count++;
@@ -743,12 +777,23 @@ factor ::= assignment:assig
         RESULT=mm;
     :};
 
-//ass2 ::= ass2 SUMOP assignment | ass2 MULTOP assignment | LPAR ass2 RPAR | assignment;
 
-//no se pueden asignar id's que sean solo una letra, los numeros tienen que tener mas que un digito
-assignment ::= ID | NUM | DIGIT | TRUE | FALSE | QUOTATION LETTER QUOTATION;
 
-switch_stmt::= SWITCH LPAR ID RPAR LKEY case_stmt:cst RKEY
+
+assignment ::= id_or_letter | assign_num:as
+    {: Node mm = new Node();
+    mm.setTag("NUM");
+    mm.setValue((String)as);
+    mm.setID(parser.count);
+    parser.count++;
+    RESULT = mm; :} | TRUE | FALSE | QUOTATION LETTER QUOTATION;
+
+assign_num ::= NUM: n {:
+    RESULT = Integer.toString(n);:}
+    | DIGIT:d {:
+    RESULT = Integer.toString(d);:};
+
+switch_stmt::= SWITCH LPAR id_or_letter RPAR LKEY case_stmt:cst RKEY
     {:
         Node mm = new Node();
         mm.setTag("SWITCH STATEMENT");
@@ -760,8 +805,24 @@ switch_stmt::= SWITCH LPAR ID RPAR LKEY case_stmt:cst RKEY
     :}
 | SWITCH error RKEY;
 
-case_stmt ::= CASE assignment COLON  END SEMICOLON case_stmt
-            | CASE assignment COLON  END SEMICOLON default_stmt
+case_stmt ::= CASE assignment COLON  END SEMICOLON case_stmt:cst
+    {:
+        Node mm = new Node();
+        mm.setTag("CASE STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) cst);
+    
+    :}
+            | CASE assignment COLON  END SEMICOLON default_stmt:dflt
+    {:
+        Node mm = new Node();
+        mm.setTag("DEFAULT STATEMENT");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) dflt);
+    
+    :}
             | CASE assignment COLON  END SEMICOLON
             | CASE assignment COLON statement_list END SEMICOLON case_stmt
             | CASE assignment COLON statement_list END SEMICOLON default_stmt
@@ -779,14 +840,14 @@ default_stmt ::= DEFAULT COLON END SEMICOLON | DEFAULT COLON statement_list:stl 
     :}| DEFAULT error;
 
 
-vartypes ::= INT | CHAR | NONE;
+vartypes ::= /*VARTYPE */ INT | CHAR | BOOLEAN |  LBRA assign_num RBRA | LBRA assign_num RBRA LBRA assign_num RBRA | NONE;
 
 
 
 boolean_expr ::= tokens_boolean:tb boolean_expr_cont:bexpc
     {:
         Node mm = new Node();
-        mm.setTag("BOOLEAN EXPRETION");
+        mm.setTag("BOOLEAN EXPR");
         mm.setID(parser.count);
         parser.count++;
         mm.addLeafs((Node) tb);
@@ -797,7 +858,7 @@ boolean_expr ::= tokens_boolean:tb boolean_expr_cont:bexpc
         | LPAR boolean_expr:bxp RPAR boolean_expr_cont:bexpc
     {:
         Node mm = new Node();
-        mm.setTag("BOOLEAN EXPRETION");
+        mm.setTag("BOOLEAN EXPR");
         mm.setID(parser.count);
         parser.count++;
         mm.addLeafs((Node) bxp);
@@ -808,7 +869,7 @@ boolean_expr ::= tokens_boolean:tb boolean_expr_cont:bexpc
         | tokens_boolean:tb
     {:
         Node mm = new Node();
-        mm.setTag("BOOLEAN EXPRETION");
+        mm.setTag("BOOLEAN EXPR");
         mm.setID(parser.count);
         parser.count++;
         mm.addLeafs((Node) tb);
@@ -818,7 +879,7 @@ boolean_expr ::= tokens_boolean:tb boolean_expr_cont:bexpc
         | LPAR boolean_expr:bxp RPAR
     {:
       Node mm = new Node();
-        mm.setTag("BOOLEAN EXPRETION");
+        mm.setTag("BOOLEAN EXPR");
         mm.setID(parser.count);
         parser.count++;
         mm.addLeafs((Node) bxp);
@@ -840,18 +901,19 @@ boolean_expr_cont ::= LOGOP boolean_expr:bxp
 
 tokens_boolean ::= TRUE:True
         | FALSE:False
-        | ID
-        | ID EQ ID
-        | ID RELOP ID
-        | ID RELOP NUM
-        | NUM RELOP ID
-        | NOT ID:id
+        | id_or_letter
+        | id_or_letter EQ id_or_letter
+        | id_or_letter RELOP id_or_letter
+        | id_or_letter EQ assign_num
+        | id_or_letter RELOP assign_num
+        | assign_num RELOP id_or_letter
+        | NOT id_or_letter:id
         | NOT TRUE:nt
         | NOT FALSE:nf;
 
 //types ::= VARTYPE;
 
-params ::= vartypes:vt ID
+params ::= vartypes:vt id_or_letter
     {:
       Node mm = new Node();
         mm.setTag("PARAMS");
@@ -861,7 +923,7 @@ params ::= vartypes:vt ID
         
         RESULT=mm;
     :}
-        | vartypes:vt ID COMMA params:p 
+        | vartypes:vt id_or_letter COMMA params:p 
         {:      
             Node mm = new Node();
             mm.setTag("PARAMS");
@@ -871,7 +933,7 @@ params ::= vartypes:vt ID
             mm.addLeafs((Node) p);
 
             RESULT=mm;
-        :}| vartypes:vt ID COMMA error
+        :}| vartypes:vt id_or_letter COMMA error
     {:
       Node mm = new Node();
         mm.setTag("PARAMS");

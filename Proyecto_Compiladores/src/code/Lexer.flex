@@ -12,7 +12,7 @@ import java.util.ArrayList;
 %full
 %char
 
-%state comment
+%state comment, onelinecomment
 spaces = [" "\n\r\t]+
 
 %{
@@ -41,7 +41,7 @@ Log_Op=("and"|"or")
 
 
 
-vartype = (int | char | bool | arr[num+] | arr[][])
+vartype = int | char | bool | arr{l_bra}({num}|{digit}){r_bra}| arr{l_bra}({num}|{digit}){r_bra}{l_bra}({num}|{digit}){r_bra}
 mmain = "main"
 endmain ="endmain"
 
@@ -50,7 +50,6 @@ break="break"
 letter = [a-zA-Z]
 word = letter+
 digit = [0-9]
-var = ({word}{vartype})
 num = {digit}+
 //boolean 
 
@@ -59,6 +58,7 @@ bool=("true"|"false")
 
 
 //other characters
+//quotation = "\""
 l_key="{"
 r_key="}"
 l_par="("
@@ -69,9 +69,9 @@ dot="."
 comma=","
 colon=":"
 semicolon=";"
+//_str = "\"[" "a-zA-Z\n]+"\"
 pipe="|"
 ASSIGN= "~"
-ASSIGNFOR="->"
 ID=({letter})+({digit}|{letter})*
 STEP = "<"{digit}+">"
 _char = "'"{letter}"'"
@@ -87,6 +87,8 @@ END_COMMENT="#/"
     // reserved words
     "int"       {return symbol(sym.INT, yytext());}
     "char"      {return symbol(sym.CHAR, yytext());}
+    "bool"      {return symbol(sym.BOOLEAN, yytext());}
+    //"str"       {return symbol(sym.STR, yytext());}
     "func"      {return symbol(sym.FUNC, yytext());}
     "switch"    {return symbol(sym.SWITCH, yytext());}
     "for"       {return symbol(sym.FOR, yytext());}
@@ -105,7 +107,8 @@ END_COMMENT="#/"
     "!"         {return symbol(sym.NOT, yytext());}
     "print"     {return symbol(sym.PRINT, yytext());}
     "=="        {return symbol(sym.EQ, yytext());}
-    "'"         {return symbol(sym.QUOTATION, yytext());}
+    "\""        {return symbol(sym.QUOTATION, yytext());}
+    "\'"        {return symbol(sym.QUOTE, yytext());}
     "run"       {return symbol(sym.RUN, yytext());}
     "end"       {return symbol(sym.END, yytext());}
     "none"      {return symbol(sym.NONE, yytext());}
@@ -117,6 +120,7 @@ END_COMMENT="#/"
     {digit}         {return symbol(sym.DIGIT, new Integer(yytext()));}
     {num}           {return symbol(sym.NUM, new Integer(yytext()));}
     {bool}          {return symbol(sym.BOOL, yytext());}
+    //{_str}          {return symbol(sym.STRING, yytext());}
     {word}          {return symbol(sym.WORD, yytext());}
     {mod}           {return symbol(sym.MOD, yytext());}
     {Log_Op}        {return symbol(sym.LOGOP, yytext());}
@@ -133,13 +137,11 @@ END_COMMENT="#/"
     {dot}           {return symbol(sym.DOT, yytext());}
     {comma}         {return symbol(sym.COMMA, yytext());}
     {semicolon}     {return symbol(sym.SEMICOLON, yytext());}
-    {var}           {return symbol(sym.VAR, yytext());}
     {pipe}          {return symbol(sym.PIPE, yytext());}
     {colon}         {return symbol(sym.COLON, yytext());}
     {ASSIGN}         {return symbol(sym.ASSIGN, yytext());}
-    {ASSIGNFOR}      {return symbol(sym.ASSIGNFOR, yytext());}
     {STEP}          {return symbol(sym.STEP, yytext());}
-    {COMMENT_LINE}  {}
+    {COMMENT_LINE}  {yybegin(onelinecomment);}
     
     {ID}            {return symbol(sym.ID,yytext());}
     
@@ -155,6 +157,11 @@ END_COMMENT="#/"
                     yybegin(YYINITIAL);}
     {spaces}        {}
     . {}
+}
+
+<onelinecomment>{
+   [\n]+ {yybegin(YYINITIAL);}
+   . {}
 }
 
 

@@ -1,0 +1,8 @@
+int main(){
+	a1(char) ~ '+'; 
+	switch(a1){
+		case '+': print('p')end;
+		case '-':  print('m')end;
+	}
+
+endmain}

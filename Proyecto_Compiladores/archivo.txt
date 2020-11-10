@@ -1,8 +1,3 @@
 int main(){
-	a1(char) ~  as;
-	switch(a1){
-		case a1: print(p);
-		
-	end;}
-
+print(`dsa`);
 endmain}

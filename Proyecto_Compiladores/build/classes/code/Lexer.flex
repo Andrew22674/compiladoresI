@@ -75,8 +75,10 @@ ASSIGN= "~"
 ID=({letter})+({digit}|{letter})*
 STEP = "<"{digit}+">"
 _char = "'"{letter}"'"
+StringCont = ([^\`\\`] | (\\n) | (\\t) | (\\\\) | (\\r) | (\\\`))*
+quotes="`"
 
-
+%state STRING
 
 // Comments
 COMMENT_LINE ="#"
@@ -144,7 +146,7 @@ END_COMMENT="#/"
     {COMMENT_LINE}  {yybegin(onelinecomment);}
     
     {ID}            {return symbol(sym.ID,yytext());}
-    
+    {quotes}        {yybegin(STRING);} 
     {spaces}        {}
     {START_COMMENT} {System.out.println("start comment");yybegin(comment);}
     .               { error("Caracter no reconocido <"+ yytext()+">");}
@@ -162,6 +164,12 @@ END_COMMENT="#/"
 <onelinecomment>{
    [\n]+ {yybegin(YYINITIAL);}
    . {}
+}
+
+<STRING>{
+   {quotes}                    {yybegin(YYINITIAL);} 
+   {StringCont}                {return symbol(sym.STRINGCONT, yytext());}
+   .                           {System.err.println("<"+yytext()+">"+" en la linea:"+(yyline)+", columna: "+(yycolumn)+ " caracter no valido");} 
 }
 
 

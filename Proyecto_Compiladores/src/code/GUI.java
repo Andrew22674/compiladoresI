@@ -182,7 +182,7 @@ public class GUI extends javax.swing.JFrame {
             Symbol s = parser.parse();
 
             System.out.println("arbol: " + parser.getRoot().getTag());
-
+            
             if (scanner.errores.size() > 0 || parser.errors.size() > 0) {
                 String s2 = "";
                 for (int i = 0; i < scanner.errores.size(); i++) {

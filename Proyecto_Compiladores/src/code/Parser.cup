@@ -16,40 +16,10 @@ ArrayList<String> errors = new ArrayList();
     }
     
     
-    /*public void syntax_error(Symbol s){
-        this.s = s;
-        System.out.println("Error en linea " + (s.left+1) + "\n" + "columna " + s.right + "\nidentificador: " + s.value + " no reconocido.");
-    }
-
-    public void unrecovered_syntax_Error(Symbol s) throws java.lang.Exception{
-        System.out.println("Error en linea " + (s.left+1) + "\n" + "columna " + s.right + "\nidentificador: " + s.value + " no reconocido 2.");
-    }
-
     
 
-    public Symbol getS(){
-        return this.s;
-}*/
 
-
-    /*public static Scanner s2;
-    int myerrors = 0;
-
-    @Override
-    public void report_error(String message, Object info) {
-    if (info instanceof String){
-	myerrors++; 
-      System.err.println("  "+ myerrors + "==> " + info + " "+ message + 
-					"\n       Parsing resumed from 2nd token before" + s2.current_lexeme()+"\n");
-    }
-    else {
-    	StringBuffer m = new StringBuffer("Error ");
-    	if (info instanceof java_cup.runtime.Symbol) 
-     	   m.append( "("+info.toString()+")" );     
-    	m.append(" : "+message);   
-    	System.err.println(m);
-    }
-  }*/
+    
      @Override
     public void syntax_error(Symbol s){
         String lexVal = s.value != null ? s.value.toString() : getToken(s.sym);
@@ -95,7 +65,7 @@ terminal LKEY,RKEY,LBRA,CHAR,RBRA,LPAR,RPAR,SWITCH,VARTYPE,PIPE,WORD,IF,ENDIF,OR
         MULTOP,LOGOP,DOT,COMMA,COLON,SEMICOLON,BOOLEAN,LETTER,QUOTATION,QUOTE,END,
         BREAK,DEFAULT,INT,MOD,ELSE,ENDMAIN, ASSIGN, NONE,RETURN,STEP,TRUE,FALSE,NOT,PRINT,EQ,RUN;
 terminal ID;
-
+terminal String  STRINGCONT;
 
 
 non terminal program,mmain, vars, tokens_boolean, letters,
@@ -710,6 +680,7 @@ assign_expr ::= term:t
         Node mm = new Node();
         mm.setTag("ASSIGN EXPRESION");
         mm.setID(parser.count);
+        //mm.setValue(t.toString());
         parser.count++;
         mm.addLeafs((Node) t);
         
@@ -795,7 +766,7 @@ assignment ::=
 id_or_letter:id
 {: Node mm = new Node();
     mm.setTag("ID");
-    //mm.setValue((String)id);
+    mm.setValue(id.toString());
     mm.setID(parser.count);
     parser.count++;
     RESULT = mm; :} 
@@ -805,7 +776,7 @@ id_or_letter:id
     mm.setValue(as.toString());
     mm.setID(parser.count);
     parser.count++;
-    RESULT = mm; :} | TRUE | FALSE | QUOTATION letters QUOTATION;
+    RESULT = mm; :} | TRUE | FALSE  ;
 
 letters ::= LETTER letters | LETTER;
 
@@ -973,8 +944,16 @@ print ::= PRINT LPAR assignment:assig RPAR SEMICOLON
         parser.count++;
         Node child = new Node(mm, assig.toString());
         mm.addLeafs(child);
-        //mm.addLeafs((Node) assig);
-        
-        
+        //mm.addLeafs((Node) assig);        
+        RESULT=mm;
+    :} | PRINT LPAR STRINGCONT:s RPAR SEMICOLON {:
+        Node mm = new Node();
+        mm.setTag("PRINT");
+        mm.setID(parser.count);
+        mm.setValue(s.toString());
+        parser.count++;
+        Node child = new Node(mm, s.toString());
+        mm.addLeafs(child);        
+        //mm.addLeafs((Node) s);        
         RESULT=mm;
     :};

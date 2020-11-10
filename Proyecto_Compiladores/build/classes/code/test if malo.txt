@@ -1,0 +1,10 @@
+int main(){
+	int a ~ 100;
+	if(a==10){
+		print("Value of a is 10");
+	endif}
+	or(a==100){
+		print("Value of a is 100");
+	end}
+
+endmain}

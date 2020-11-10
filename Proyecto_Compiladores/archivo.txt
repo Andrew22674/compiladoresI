@@ -1,11 +1,12 @@
 int main(){
-ttrue(char) ~ true;
-if(ne==2){
-print("a");
-}else{
-if(asd>3){
- c(int) ~ 10*2+3;
-}endif;
-}endif;
+s(int) ~ 10;
+if(asd>4){
+    for(int a; 10<1>10){
+        s ~ s +a;
+    }
+}or(ab<5){
 
+}else{
+    print(asd);
+}endif;
 endmain}

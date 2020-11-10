@@ -1,0 +1,8 @@
+int main(){
+	contandor(int) ~ 0;
+
+	run{
+		print( contador  );
+	}while(contador<11);
+	
+endmain}

@@ -98,7 +98,7 @@ terminal ID;
 
 
 
-non terminal program,mmain, vars, tokens_boolean, 
+non terminal program,mmain, vars, tokens_boolean, letters,
         call_function, function_declaration, function_list, if_stmt, default_stmt, else_stmt, for_stmt, statement_list, statement, boolean_expr,or_stmt, while_stmt, print, 
         call_params,params, return,boolean_expr_cont,assignment,vartypes,id_or_letter,switch_stmt,assign_num,case_stmt,num_list, assign, assignvalues, assign_expr,term,factor;
 
@@ -249,6 +249,7 @@ statement ::= for_stmt:fst
         Node mm = new Node();
         mm.setTag("STATEMENT ASSIGN VALUES");
         mm.setID(parser.count);
+        //mm.setValue(avst);
         parser.count++;
         mm.addLeafs((Node) avst);
         
@@ -543,7 +544,7 @@ while_stmt ::= RUN LKEY statement_list:stl RKEY WHILE LPAR boolean_expr:bxp RPAR
         RESULT = mm;
     :};
 
-for_stmt ::= FOR LPAR INT ID SEMICOLON assign_num STEP assign_num RPAR LKEY statement_list:stl RKEY
+for_stmt ::= FOR LPAR INT id_or_letter SEMICOLON assign_num STEP assign_num RPAR LKEY statement_list:stl RKEY
     {:
         Node mm = new Node();
         mm.setTag("FOR STATEMENT");
@@ -553,7 +554,7 @@ for_stmt ::= FOR LPAR INT ID SEMICOLON assign_num STEP assign_num RPAR LKEY stat
         
         RESULT = mm;
     :}
-|FOR LPAR INT ID SEMICOLON assign_num STEP assign_num RPAR LKEY /*vacio*/ RKEY
+|FOR LPAR INT id_or_letter SEMICOLON assign_num STEP assign_num RPAR LKEY /*vacio*/ RKEY
     {:
         Node mm = new Node();
         mm.setTag("FOR STATEMENT");
@@ -666,7 +667,7 @@ function_list ::= function_list:fcl function_declaration:fcd
 
 return ::= RETURN id_or_letter SEMICOLON | RETURN assign_num SEMICOLON;
 
-id_or_letter ::= ID | LETTER;
+id_or_letter ::= ID:id {: RESULT = (String) id; :}| LETTER:let {: RESULT = (String) let; :};
 
 vars ::=  id_or_letter LPAR vartypes:vt RPAR ASSIGN assign_expr:axp SEMICOLON
     {:
@@ -683,16 +684,19 @@ vars ::=  id_or_letter LPAR vartypes:vt RPAR ASSIGN assign_expr:axp SEMICOLON
 //assign ::= ID ASSIGN assignment SEMICOLON;
 
 //a ~| (10+(a*b)/23)
-assignvalues ::= id_or_letter ASSIGN assign_expr:axp SEMICOLON
+assignvalues ::= id_or_letter:id ASSIGN assign_expr:axp SEMICOLON
     {:
         Node mm = new Node();
         mm.setTag("ASSIGN VALUES");
         mm.setID(parser.count);
+        //mm.setValue((String)axp);
         parser.count++;
         mm.addLeafs((Node) axp);
         
         RESULT=mm;
-    :};
+    :}
+    | id_or_letter LBRA assign_num RBRA ASSIGN assign_num
+    | id_or_letter LBRA assign_num RBRA LBRA assign_num RBRA ASSIGN assign_num;
 
 assign_expr ::= term:t
     {:
@@ -780,13 +784,23 @@ factor ::= assignment:assig
 
 
 
-assignment ::= id_or_letter | assign_num:as
+assignment ::= 
+id_or_letter:id
+{: Node mm = new Node();
+    mm.setTag("ID");
+    //mm.setValue((String)id);
+    mm.setID(parser.count);
+    parser.count++;
+    RESULT = mm; :} 
+ | assign_num:as
     {: Node mm = new Node();
     mm.setTag("NUM");
     mm.setValue((String)as);
     mm.setID(parser.count);
     parser.count++;
-    RESULT = mm; :} | TRUE | FALSE | QUOTATION LETTER QUOTATION;
+    RESULT = mm; :} | TRUE | FALSE | QUOTATION letters QUOTATION;
+
+letters ::= LETTER letters | LETTER;
 
 assign_num ::= NUM: n {:
     RESULT = Integer.toString(n);:}

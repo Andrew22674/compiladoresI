@@ -1,7 +1,15 @@
 digraph G {
-"4. Start = null"->"3. MAIN = null"
-"3. MAIN = null"->"2. STATEMENT LIST = null"
-"2. STATEMENT LIST = null"->"1. STATEMENT VARS = null"
+"16. Start = null"->"15. MAIN = null"
+"15. MAIN = null"->"14. STATEMENT LIST = null"
+"14. STATEMENT LIST = null"->"6. STATEMENT LIST = null"
+"6. STATEMENT LIST = null"->"5. STATEMENT VARS = null"
+"5. STATEMENT VARS = null"->"4. VARS = null"
+"4. VARS = null"->"3. ASSIGN EXPRESION = null"
+"3. ASSIGN EXPRESION = null"->"2. TERM = null"
+"2. TERM = null"->"1. FACTOR = null"
+"1. FACTOR = null"->"0. ID = null"
+"14. STATEMENT LIST = null"->"13. STATEMENT SWITCH = null"
+"13. STATEMENT SWITCH = null"->"12. SWITCH STATEMENT = null"
 
 
 }

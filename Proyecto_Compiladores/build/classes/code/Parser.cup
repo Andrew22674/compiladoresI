@@ -667,7 +667,7 @@ function_list ::= function_list:fcl function_declaration:fcd
 
 return ::= RETURN id_or_letter SEMICOLON | RETURN assign_num SEMICOLON;
 
-id_or_letter ::= ID:id {: RESULT = (String) id; :}| LETTER:let {: RESULT = (String) let; :};
+id_or_letter ::= ID:id {: RESULT = id.toString(); :}| LETTER:let {: RESULT = let.toString(); :};
 
 vars ::=  id_or_letter LPAR vartypes:vt RPAR ASSIGN assign_expr:axp SEMICOLON
     {:
@@ -717,7 +717,7 @@ assign_expr ::= term:t
     :} | assign_expr:axp SUMOP:sum term:t
     {:
         Node mm = new Node();
-        Node child= new Node(mm, (String)sum);
+        Node child= new Node(mm, sum.toString());
         child.setTag("SUM");
         mm.setTag("ADD EXPRESION");
         mm.setID(parser.count);
@@ -751,7 +751,7 @@ term ::= factor:f
         mm.setTag("mult_expr");
         mm.setID(parser.count);
         parser.count++;
-        Node child = new Node(mm, (String) m);
+        Node child = new Node(mm, m.toString());
         child.setTag("MULT");
         child.setID(parser.count);
         parser.count++;
@@ -802,7 +802,7 @@ id_or_letter:id
  | assign_num:as
     {: Node mm = new Node();
     mm.setTag("NUM");
-    mm.setValue((String)as);
+    mm.setValue(as.toString());
     mm.setID(parser.count);
     parser.count++;
     RESULT = mm; :} | TRUE | FALSE | QUOTATION letters QUOTATION;
@@ -971,7 +971,7 @@ print ::= PRINT LPAR assignment:assig RPAR SEMICOLON
         mm.setTag("PRINT");
         mm.setID(parser.count);
         parser.count++;
-        Node child = new Node(mm, (String)assig);
+        Node child = new Node(mm, assig.toString());
         mm.addLeafs(child);
         //mm.addLeafs((Node) assig);
         

@@ -1,8 +1,8 @@
 digraph G {
 "4. Start = null"->"3. MAIN = null"
 "3. MAIN = null"->"2. STATEMENT LIST = null"
-"2. STATEMENT LIST = null"->"1. STATEMENT PRINT = null"
-"1. STATEMENT PRINT = null"->"0. PRINT = hola mundo"
+"2. STATEMENT LIST = null"->"1. STATEMENT VARS = null"
+"1. STATEMENT VARS = null"->"0. VARS = null"
 
 
 }

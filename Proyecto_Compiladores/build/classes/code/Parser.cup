@@ -776,7 +776,7 @@ id_or_letter:id
     mm.setValue(as.toString());
     mm.setID(parser.count);
     parser.count++;
-    RESULT = mm; :} | TRUE | FALSE | QUOTATION letters QUOTATION ;
+    RESULT = mm; :} | TRUE | FALSE | QUOTATION STRINGCONT QUOTATION ;
 
 letters ::= LETTER letters | LETTER;
 

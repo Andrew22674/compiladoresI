@@ -679,6 +679,12 @@ vars ::=  id_or_letter LPAR vartypes:vt RPAR ASSIGN assign_expr:axp SEMICOLON
         mm.addLeafs((Node) axp);
         
         RESULT=mm;
+    :} | id_or_letter LPAR vartypes:vt RPAR SEMICOLON {:
+        Node mm = new Node();
+        mm.setTag("ARRAYS");
+        mm.setID(parser.count);
+        parser.count++;
+        mm.addLeafs((Node) vt);
     :};
 
 //assign ::= ID ASSIGN assignment SEMICOLON;
@@ -697,6 +703,7 @@ assignvalues ::= id_or_letter:id ASSIGN assign_expr:axp SEMICOLON
     :}
     | id_or_letter LBRA assign_num RBRA ASSIGN assign_num
     | id_or_letter LBRA assign_num RBRA LBRA assign_num RBRA ASSIGN assign_num;
+
 
 assign_expr ::= term:t
     {:

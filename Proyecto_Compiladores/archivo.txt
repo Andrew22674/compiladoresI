@@ -1,12 +1,3 @@
 int main(){
-s(int) ~ 10;
-if(asd>4){
-    for(int a; 10<1>10){
-        s ~ s +a;
-    }
-}or(ab<5){
-
-}else{
-    print(asd);
-}endif;
+	a([1][2]);
 endmain}
